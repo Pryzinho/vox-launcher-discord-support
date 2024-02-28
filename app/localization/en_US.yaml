@@ -37,6 +37,12 @@ LAUNCH_BUTTON:
     SAVE_QUIT: SAVE / STOP
     STOPPING: STOPPING
 
+
+DISCORD_BUTTON:
+    START: Start
+    STOP: Stop
+
+
 SHARD_STATUS:
     OFFLINE:    Offline
     STARTING:   Starting...
@@ -94,6 +100,7 @@ ENTRY:
     GAME_TITLE: Game Directory
     CLUSTER_TITLE: Cluster Directory
     TOKEN_TITLE: Server Token
+    DISCORD_TOKEN_TITLE: Token do Discord
     ENTRY_INVALID_INPUT: "✱ Invalid Input"
 
 ERROR:

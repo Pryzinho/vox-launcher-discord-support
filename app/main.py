@@ -12,9 +12,9 @@ from helpers import *
 from strings import STRINGS
 from fonts import FONT
 
-from widgets.buttons import CustomButton
+from widgets.buttons import CustomButton, ImageButton
 from widgets.entries import TokenEntry, DirectoryEntry, ClusterDirectoryEntry
-from widgets.frames import ScrollableShardGroupFrame
+from widgets.frames import ScrollableShardGroupFrame, DiscordPanel
 from widgets.misc import Tooltip, CommandPopUp, ServerErrorPopUp, AppExceptionPopUp, AppOutdatedPopUp, LaunchDataPopUp, ClusterStats
 
 # ------------------------------------------------------------------------------------ #
@@ -211,6 +211,20 @@ class App(CTk):
         self.launch_button.show()
 
         self.launch_button.text = launch_buton_text
+
+        self.discord_panel = DiscordPanel(master=app, shard="besta", server="a")
+
+        self.discord_button = ImageButton(
+            master=self,
+            image="assets/discordmark.png",
+            # command=self.shard_log_panel.show,
+            command=self.discord_panel.show,
+            width=639/20,
+            height=490/20 + 20,
+            image_size=(639/20, 490/20),
+            pos=POS.DISCORD_BUTTON,
+        )
+        self.discord_button.show()
 
         self.save_button = CustomButton(
             master=self,

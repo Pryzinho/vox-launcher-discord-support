@@ -3,11 +3,13 @@ import yaml
 from helpers import resource_path, get_system_language_code, DotDict
 from constants import APP_VERSION
 
+
 # ----------------------------------------------------------------------------------------- #
 
 class DefaultDict(dict):
     def __missing__(self, key):
-        return f"{{{key}}}"   # {key}
+        return f"{{{key}}}"  # {key}
+
 
 # ----------------------------------------------------------------------------------------- #
 
@@ -27,12 +29,13 @@ strings = yaml.safe_load(loc_file.read_text(encoding="utf-8"))
 STRINGS = DotDict(strings)
 
 format_lookup = DefaultDict(
-    APP_VERSION   = APP_VERSION,
-    APP_NAME      = STRINGS.APP_NAME,
-    GAME_TITLE    = STRINGS.ENTRY.GAME_TITLE,
-    CLUSTER_TITLE = STRINGS.ENTRY.CLUSTER_TITLE,
-    TOKEN_TITLE   = STRINGS.ENTRY.TOKEN_TITLE,
-    LAUNCH        = STRINGS.LAUNCH_BUTTON.LAUNCH,
+    APP_VERSION=APP_VERSION,
+    APP_NAME=STRINGS.APP_NAME,
+    GAME_TITLE=STRINGS.ENTRY.GAME_TITLE,
+    CLUSTER_TITLE=STRINGS.ENTRY.CLUSTER_TITLE,
+    TOKEN_TITLE=STRINGS.ENTRY.TOKEN_TITLE,
+   # DISCORD_TOKEN_TITLE=STRINGS.ENTRY.DISCORD_TOKEN_TITLE,
+    LAUNCH=STRINGS.LAUNCH_BUTTON.LAUNCH,
 )
 
 # ----------------------------------------------------------------------------------------- #

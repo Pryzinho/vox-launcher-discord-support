@@ -11,6 +11,10 @@ from helpers import load_lua_file, read_only_bind, disable_bind, resource_path, 
 from shard_server import DedicatedServerShard
 from fonts import FONT
 
+from app.constants import POS
+from app.helpers import logger
+
+
 class LogsTopBar:
     def __init__(self, master, server, shard) -> None:
         self.root = master
@@ -334,6 +338,293 @@ class ShardLogPanel():
             #self._mouse_scroll_event()
 
 
+class DiscordTopBar:
+    def __init__(self, master, server, shard) -> None:
+        self.root = master
+        self.server = server
+        self.shard = shard
+        self.memory = StringVar(value="??")
+
+        self._frame = CustomFrame(
+            master=self.root,
+            color=COLOR.GRAY,
+            size=SIZE.LOGS_TOP_BAR,
+            pos=OFFSET.LOGS_TOP_BAR,
+        )
+
+        launch_buton_text = StringVar(value=STRINGS.DISCORD_BUTTON.START)
+
+        self.start_button = CustomButton(
+            master=self._frame,
+            textvariable=launch_buton_text,
+            command=self.update_memory,
+            font=FONT.SMALL_BUTTON,
+            size=Size(100, 20),
+            pos=Pos(0, 0),
+        )
+        self.start_button.text = launch_buton_text
+
+        image_size = self.root._apply_widget_scaling(12)
+        image = CTkImage(Image.open(resource_path("assets/directory.png")), size=(image_size, image_size))
+
+        self.open_folder_button = CustomButton(
+            master=self._frame,
+            text=STRINGS.LOG_SCREEN.SHARD_FOLDER,
+            command=self._open_discord_folder,
+            font=FONT.CLUSTER_STATS,
+            size=Size(100, 20),
+            pos=Pos(0, 0),
+            image=image,
+        )
+
+        self.start_button.grid(
+            row=0,
+            column=0,
+            padx=(0, 10),
+            sticky="nw"
+        )
+
+        self.open_folder_button.grid(
+            row=0,
+            column=1,
+            padx=(10, 0),
+            sticky="w"
+        )
+
+    def callback_start(self):
+        logger.debug("func bttn discord bot start called")
+        # Check if discord bot is already running (?)
+        #  If yes then stop the bot (Maybe killing node process / Or something else if multiple discord-api is supported)
+        # If no then start the bot (Run a "node ." with something like the vox launchs dst.exe)
+        # if self.master_shard.is_running():
+        #   self.master_shard.stop()
+        # else:
+        #   self.shard_group.start_all_shards()
+
+    def _open_discord_folder(self):
+        open_folder(os.path.join(os.getcwd(), "..", "discord"))
+
+    def show(self):
+        self._frame.place(
+            x=OFFSET.LOGS_TOP_BAR.x,
+            y=OFFSET.LOGS_TOP_BAR.y,
+        )
+
+    def hide(self):
+        self._frame.place_forget()
+
+
+class DiscordPanel():
+    switch_xpad = 20
+
+    def __init__(self, master, shard, server) -> None:
+        self.server = server
+        self._auto_scroll = False
+        self._visible = False
+        self.shard = shard
+        self.corner_radius = 10
+        self.hightlight_data = []
+
+        self.root = CustomFrame(
+            master=master,
+            color=COLOR.GRAY,
+            size=SIZE.LOGS_PANEL,
+            # pos=OFFSET.LOGS_PANEL,
+            corner_radius=self.corner_radius,
+        )
+
+        self.topbar = DiscordTopBar(master=self.root, server=self.server, shard=self.shard)
+
+        self.textbox = CTkTextbox(
+            master=self.root,
+            width=SIZE.LOGS_TEXTBOX.w,
+            height=SIZE.LOGS_TEXTBOX.h,
+            corner_radius=self.corner_radius,
+            fg_color=COLOR.DARK_GRAY,
+            text_color=COLOR.WHITE,
+            scrollbar_button_color=COLOR.GRAY,
+            scrollbar_button_hover_color=COLOR.GRAY_HOVER,
+            font=FONT.TEXTBOX,
+        )
+
+        # self.textbox.bind("<MouseWheel>", self._mouse_scroll_event)
+
+        self.textbox._textbox.configure(selectbackground=COLOR.GRAY)
+
+        self.add_hightlight(pattern=r'\[\d{2}:\d{2}:\d{2}\]:', name="timestamp", color=COLOR.CONSOLE_GRAY)
+        self.add_hightlight(pattern=r'World \d* is now connected', name="online", color=COLOR.GREEN)
+        self.add_hightlight(pattern=r'RemoteCommandInput:.*?[\n\r]+', name="remotecommand", color=COLOR.LIGHT_BLUE)
+        self.add_hightlight(pattern=r'\[Warning\].*?[\n\r]+', name="warnings", color=COLOR.YELLOW)  # FIXME: bugged
+
+        self.textbox.place(
+            x=OFFSET.LOGS_TEXTBOX.x,
+            y=OFFSET.LOGS_TEXTBOX.y,
+        )
+
+        self.textbox.bind("<Key>", read_only_bind)
+
+        self.entry = CTkEntry(
+            master=self.root,
+            corner_radius=self.corner_radius,
+            border_color=COLOR.DARK_GRAY,
+            text_color=COLOR.WHITE,
+            fg_color=COLOR.DARK_GRAY,
+            font=FONT.ENTRY,
+            border_width=0,
+            width=SIZE.LOGS_ENTRY.w,
+            height=SIZE.LOGS_ENTRY.h,
+            placeholder_text=STRINGS.LOG_SCREEN.ENTRY_PLACEHOLDER.format(shard=self.shard),
+        )
+
+        self.entry._entry.configure(selectbackground=COLOR.GRAY)
+
+        self.entry.place(
+            x=OFFSET.LOGS_ENTRY.x,
+            y=OFFSET.LOGS_ENTRY.y,
+        )
+
+        self.entry.bind("<Return>", self.execute_command)
+
+        self.button = CTkButton(
+            master=self.root,
+            text=STRINGS.LOG_SCREEN.CLOSE,
+            command=self.hide,
+            corner_radius=10,
+            fg_color=COLOR.RED,
+            hover_color=COLOR.RED_HOVER,
+            text_color=COLOR.WHITE,
+            width=SIZE.LOGS_CLOSE.w,
+            height=SIZE.LOGS_CLOSE.h,
+            font=FONT.LAUNCH_BUTTON,
+            border_width=1,
+            border_color=COLOR.DARK_GRAY,
+        )
+
+        self.button.place(
+            x=OFFSET.LOGS_CLOSE.x,
+            y=OFFSET.LOGS_CLOSE.y,
+        )
+
+        # self.show_end_button = ImageButton(
+        #     master=self.root,
+        #     image="assets/arrowdown.png",
+        #     bg_color=COLOR.DARK_GRAY,
+        #     command=self.show_end,
+        #     width=SIZE.LOGS_SHOW_END_BUTTON.w,
+        #     height=SIZE.LOGS_SHOW_END_BUTTON.h,
+        #     image_size=(SIZE.LOGS_SHOW_END_BUTTON.w - 18, SIZE.LOGS_SHOW_END_BUTTON.h - 18),
+        #     pos=Pos(OFFSET.LOGS_SHOW_END_BUTTON.x, OFFSET.LOGS_SHOW_END_BUTTON.y),
+        # )
+
+        self.auto_scroll_switch = CTkSwitch(
+            master=self.root,
+            text=STRINGS.LOG_SCREEN.AUTO_SCROLL,
+            command=self._auto_scroll_event,
+            onvalue=True,
+            offvalue=False,
+            bg_color=COLOR.GRAY,
+            fg_color=COLOR.DARK_GRAY,
+            progress_color=COLOR.GREEN,
+            button_color=COLOR.WHITE,
+            button_hover_color=COLOR.WHITE,
+            text_color=COLOR.WHITE,
+            font=FONT.TEXTBOX,
+            width=SIZE.LOGS_AUTO_SCROLL_SWITCH.w + self.switch_xpad,
+            height=SIZE.LOGS_AUTO_SCROLL_SWITCH.h,
+        )
+
+        self.auto_scroll_switch.place(
+            x=OFFSET.LOGS_AUTO_SCROLL_SWITCH.x - self.switch_xpad,
+            y=OFFSET.LOGS_AUTO_SCROLL_SWITCH.y,
+        )
+
+        self.auto_scroll_switch._canvas.grid(row=0, column=0, sticky="", padx=(self.switch_xpad, 10))
+        self.auto_scroll_switch._text_label.grid(row=0, column=2, sticky="w", padx=(0, self.switch_xpad))
+        self.hide()
+
+    def show(self):
+        self._visible = True
+
+        self.root.place(
+            x=OFFSET.LOGS_PANEL.x,
+            y=OFFSET.LOGS_PANEL.y,
+        )
+
+        self.root.lift()
+        self.show_end()
+        self.highlight_text()
+
+    def hide(self):
+        self._visible = False
+        self.root.place_forget()
+
+    def execute_command(self, *args, **kwargs):
+        logger.info("Executed command")
+        self.entry.delete(0, END)
+        self.show_end()
+
+    #        command = self.entry.get()
+    #
+    #        if command and self.server:
+    #            self.server.execute_command(command)
+    #            self.entry.delete(0, END)
+    #            self.show_end()
+
+    def append_text(self, text):
+        self.textbox.insert(END, text)
+
+        if self._visible:
+            self.highlight_text()
+
+            if self._auto_scroll:
+                self.show_end()
+
+            else:
+                self._mouse_scroll_event()
+
+    def show_end(self):
+        self.textbox.see(END)
+        self._mouse_scroll_event()
+
+    def add_hightlight(self, pattern, name, color):
+        self.textbox.tag_config(name, foreground=color)
+
+        self.hightlight_data.append(
+            TextHightlightData(
+                pattern=re.compile(pattern),
+                name=name,
+            )
+        )
+
+    def highlight_text(self):
+        text = self.textbox.get("1.0", END)
+
+        for highlight in self.hightlight_data:
+            matches = highlight.pattern.finditer(text)
+
+            for match in matches:
+                start, end = match.span()
+                self.textbox.tag_add(highlight.name, f"1.0+{start}c", f"1.0+{end}c")
+
+    def _mouse_scroll_event(self, *args, **kwargs):
+        pass
+
+    #     if self.textbox.yview()[1] > 0.995:
+    #         self.show_end_button.hide()
+    #     else:
+    #         self.show_end_button.show()
+
+    def _auto_scroll_event(self):
+        self._auto_scroll = self.auto_scroll_switch.get()
+
+        if self._auto_scroll:
+            self.show_end()
+
+        else:
+            pass
+            # self._mouse_scroll_event()
+
+
 class CustomFrame(CTkFrame):
     def __init__(self, color, size, pos=None, corner_radius=15, border_color=None, bg_color="transparent", **kwargs):
         super().__init__(
@@ -552,7 +843,7 @@ class ShardFrame(CustomFrame):
             self._master.reset_button.show()
             self._master.rollback_button.show()
 
-            self._master.master_shard.execute_command(load_lua_file("worlddata"), log=False)
+            self._master.master_shard.execute_command(load_lua_file("worlddata"))
 
     def is_starting(self):
         return self.status == SERVER_STATUS.STARTING
@@ -565,7 +856,7 @@ class ShardFrame(CustomFrame):
 
     def is_restarting(self):
         return self.status == SERVER_STATUS.RESTARTING
-    
+
     def add_text_to_log_screen(self, text):
         self.shard_log_panel.append_text(text)
 
