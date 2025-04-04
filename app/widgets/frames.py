@@ -4,15 +4,16 @@ import re, os
 from pathlib import Path
 from PIL import Image
 
-from strings import STRINGS
-from constants import COLOR, SERVER_STATUS, OFFSET, SIZE, FRAME_GAP, FONT_SIZE, Pos, Size
-from widgets.buttons import ImageButton, RelativeXImageButton, CustomButton
-from helpers import load_lua_file, read_only_bind, disable_bind, resource_path, get_memory_usage, open_folder, \
+from app.shard_server import DedicatedServerShard
+from app.strings import STRINGS
+from app.constants import COLOR, SERVER_STATUS, OFFSET, SIZE, FRAME_GAP, FONT_SIZE, Pos, Size
+from app.widgets.buttons import ImageButton, RelativeXImageButton, CustomButton
+from app.helpers import load_lua_file, read_only_bind, disable_bind, resource_path, get_memory_usage, open_folder, \
     TextHightlightData, PeriodicTask
-from shard_server import DedicatedServerShard
-from fonts import FONT
 
 from app.constants import POS
+from app.discord_bot import DiscordBotLocal
+from fonts import FONT
 from app.helpers import logger
 
 
@@ -342,11 +343,31 @@ class ShardLogPanel():
             # self._mouse_scroll_event()
 
 
+class CustomFrame(CTkFrame):
+    def __init__(self, color, size, pos=None, corner_radius=15, border_color=None, bg_color="transparent", **kwargs):
+        super().__init__(
+            border_color=border_color or color,
+            fg_color=color,
+            bg_color=bg_color,
+            corner_radius=corner_radius,
+            width=size.w,
+            height=size.h,
+            **kwargs
+        )
+
+        if pos:
+            self.place(
+                x=pos.x,
+                y=pos.y,
+            )
+
+
 class DiscordTopBar:
-    def __init__(self, master, server, shard) -> None:
+    # esses arguemntos se pa vao ser removidos daqui
+    def __init__(self, master, server, bot_name) -> None:
         self.root = master
         self.server = server
-        self.shard = shard
+        self.bot_name = bot_name
         self.memory = StringVar(value="??")
 
         self._frame = CustomFrame(
@@ -395,6 +416,9 @@ class DiscordTopBar:
             sticky="w"
         )
 
+    def update_memory(self):
+        logger.warning("updeitada a memoria cara")
+
     def callback_start(self):
         logger.debug("func bttn discord bot start called")
         # Check if discord bot is already running (?)
@@ -406,8 +430,12 @@ class DiscordTopBar:
         #   self.shard_group.start_all_shards()
 
     def _open_discord_folder(self):
-        open_folder(os.path.join(os.getcwd(), "..", "discord"))
-
+        path = Path.cwd().parent / "discord"
+        if path.exists() and path.is_dir():
+            open_folder(path)
+        else:
+            # TODO: Criar popup no app
+            print("Nao achou a pasta sacas")
     def show(self):
         self._frame.place(
             x=OFFSET.LOGS_TOP_BAR.x,
@@ -418,14 +446,14 @@ class DiscordTopBar:
         self._frame.place_forget()
 
 
-class DiscordPanel():
+class DiscordPanel:
     switch_xpad = 20
 
-    def __init__(self, master, shard, server) -> None:
-        self.server = server
+    def __init__(self, master, frame) -> None:
+        self.server = DiscordBotLocal(app=master, bot_frame=frame)
+        self.bot_name = self.server.bot_name
         self._auto_scroll = False
         self._visible = False
-        self.shard = shard
         self.corner_radius = 10
         self.hightlight_data = []
 
@@ -437,7 +465,7 @@ class DiscordPanel():
             corner_radius=self.corner_radius,
         )
 
-        self.topbar = DiscordTopBar(master=self.root, server=self.server, shard=self.shard)
+        self.topbar = DiscordTopBar(master=self.root, server=self.server, bot_name=self.bot_name)
 
         self.textbox = CTkTextbox(
             master=self.root,
@@ -477,7 +505,7 @@ class DiscordPanel():
             border_width=0,
             width=SIZE.LOGS_ENTRY.w,
             height=SIZE.LOGS_ENTRY.h,
-            placeholder_text=STRINGS.LOG_SCREEN.ENTRY_PLACEHOLDER.format(shard=self.shard),
+            placeholder_text=STRINGS.LOG_SCREEN.ENTRY_PLACEHOLDER.format(shard=self.bot_name),
         )
 
         self.entry._entry.configure(selectbackground=COLOR.GRAY)
@@ -547,6 +575,7 @@ class DiscordPanel():
         self.hide()
 
     def show(self):
+        self.bot_name = self.server.get_name('DiscordBot1')
         self._visible = True
 
         self.root.place(
@@ -629,23 +658,108 @@ class DiscordPanel():
             # self._mouse_scroll_event()
 
 
-class CustomFrame(CTkFrame):
-    def __init__(self, color, size, pos=None, corner_radius=15, border_color=None, bg_color="transparent", **kwargs):
+# isso tem que ser convertido no discord button
+class DiscordFrame(CustomFrame):
+    def __init__(self, app, pos, **kwargs):
+        self.status = SERVER_STATUS.OFFLINE
         super().__init__(
-            border_color=border_color or color,
-            fg_color=color,
-            bg_color=bg_color,
-            corner_radius=corner_radius,
-            width=size.w,
-            height=size.h,
+            master=app,
+            pos=pos,
+            bg_color=COLOR.DARK_GRAY,
             **kwargs
         )
+        self.status_msg = StringVar(value=STRINGS.SHARD_STATUS.OFFLINE)
 
-        if pos:
-            self.place(
-                x=pos.x,
-                y=pos.y,
-            )
+        self.discord_panel = DiscordPanel(master=app, frame=self)
+
+        self.discord_button = RelativeXImageButton(
+            hide_bg=True,
+            master=self,
+            image="./assets/discord-mark-blue.png",
+            command=self.discord_panel.show,
+            bg_color=COLOR.DARK_GRAY,
+            # Esse width e height é do tamanho do Botão
+            width=SIZE.DISCORD_BUTTON.w,
+            height=SIZE.DISCORD_BUTTON.h,
+            image_size=(61.9, 47),
+            relx=0,
+            # O y nao é modificado pela Classe RelativeXImageButton mas parece ser relativo(0~1).
+            y=0
+        )
+        self.discord_button.show()
+
+        self.status_circle = ColouredCircle(
+            master=self,
+            color=COLOR.WHITE,
+            relx=(SIZE.DISCORD_BUTTON.w / SIZE.DISCORD_FRAME.w) + 0.1,
+            # Para evitar criar outra classe de ColouredCircle, prefiri criar essa formula do que por o y puro.
+            y=(SIZE.DISCORD_BUTTON.h + SIZE.SHARD_STATUS_CIRCLE.w + 5) / 2 - 5,
+            size=SIZE.SHARD_STATUS_CIRCLE.w + 5,
+        )
+
+        self.status_msg_label = CTkLabel(
+            master=self,
+            height=0,
+            anchor="nw",
+            textvariable=self.status_msg,
+            text_color=COLOR.WHITE,
+            fg_color="transparent",
+            font=FONT.SHARD_STATUS,
+        )
+
+        self.status_msg_label.place(
+            relx=(SIZE.DISCORD_BUTTON.w / SIZE.DISCORD_FRAME.w) + 0.3,
+            rely=0.5 - 5 / SIZE.DISCORD_FRAME.h,
+        )
+
+        self.set_offline()
+
+    def set_offline(self):
+        self.status = SERVER_STATUS.OFFLINE
+
+        self.status_msg.set(STRINGS.SHARD_STATUS.OFFLINE)
+        self.status_circle.set_color(COLOR.WHITE)
+
+        self.discord_panel.textbox.delete("1.0", END)
+
+    def set_restarting(self):
+        self.status = SERVER_STATUS.RESTARTING
+
+        self.status_msg.set(STRINGS.SHARD_STATUS.RESTARTING)
+        self.status_circle.set_color(COLOR.YELLOW)
+
+    def set_starting(self):
+        self.status = SERVER_STATUS.STARTING
+
+        self.status_msg.set(STRINGS.SHARD_STATUS.STARTING)
+        self.status_circle.set_color(COLOR.YELLOW)
+
+    def set_stopping(self):
+        self.status = SERVER_STATUS.STOPPING
+
+        self.status_msg.set(STRINGS.SHARD_STATUS.STOPPING)
+        self.status_circle.set_color(COLOR.YELLOW)
+
+    def set_online(self):
+        self.status = SERVER_STATUS.ONLINE
+
+        self.status_msg.set(STRINGS.SHARD_STATUS.ONLINE)
+        self.status_circle.set_color(COLOR.GREEN)
+
+    def is_starting(self):
+        return self.status == SERVER_STATUS.STARTING
+
+    def is_online(self):
+        return self.status == SERVER_STATUS.ONLINE
+
+    def is_stopping(self):
+        return self.status == SERVER_STATUS.STOPPING
+
+    def is_restarting(self):
+        return self.status == SERVER_STATUS.RESTARTING
+
+    def add_text_to_log_screen(self, text):
+        self.discord_panel.append_text(text)
 
 
 class PlaceHolderShardFrame(CustomFrame):

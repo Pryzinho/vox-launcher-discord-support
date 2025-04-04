@@ -11,25 +11,32 @@ class ImageButton(CTkButton):
     def __init__(self, image, image_size, pos, hide_bg=False, **kwargs):
         self.x = pos.x
         self.y = pos.y
-        print(pos.x, pos.y, 'isso é do imagebutton', hide_bg)
         image = CTkImage(Image.open(resource_path(image)), size=image_size)
 
         fg_color = COLOR.GRAY
-        hover_color = COLOR.GRAY_HOVER
 
         # Se hide_bg for True, remove o fundo
         if hide_bg:
-            fg_color = "transparent"
-            hover_color = None
-        super().__init__(
-            image=image,
-            text=None,
-            corner_radius=10,
-            border_spacing=0.01,
-            fg_color=fg_color,
-            hover_color=hover_color,
-            **kwargs
-        )
+            kwargs.pop("hover", None)
+            super().__init__(
+                image=image,
+                text=None,
+                corner_radius=10,
+                border_spacing=0.01,
+                fg_color="transparent",
+                hover=False,
+                **kwargs
+            )
+        else:
+            super().__init__(
+                image=image,
+                text=None,
+                corner_radius=10,
+                border_spacing=0.01,
+                fg_color=fg_color,
+                **kwargs
+            )
+
 
     def show(self):
         self.place(x=self.x, y=self.y)
@@ -48,7 +55,6 @@ class RelativeXImageButton(ImageButton):
     def __init__(self, relx, y, **kwargs):
         self.relx = relx
         self.y = y
-
         super().__init__(pos=Pos(relx, y), **kwargs)
 
     def show(self):

@@ -7,6 +7,7 @@ import traceback, requests
 from customtkinter import CTk, CTkLabel
 from tkinter import StringVar
 
+from app.widgets.frames import DiscordFrame
 from constants import *
 from helpers import *
 from strings import STRINGS
@@ -198,16 +199,7 @@ class App(CTk):
             - Version label
         """
 
-        self.discord_button = ImageButton(
-            master=self,
-            command=self.callback_launch,
-            image='./assets/discord-mark-blue.png',
-            image_size=(61.9, 47),
-            pos=Pos(560,510),
-            hover=False,
-            hide_bg=True
-        )
-        self.discord_button.show()
+
 
         launch_buton_text = StringVar(value=STRINGS.LAUNCH_BUTTON.LAUNCH)
 
@@ -224,19 +216,16 @@ class App(CTk):
 
         self.launch_button.text = launch_buton_text
 
-        self.discord_panel = DiscordPanel(master=app, shard="besta", server="a")
-
-        self.discord_button = ImageButton(
-            master=self,
-            image="assets/discordmark.png",
-            # command=self.shard_log_panel.show,
-            command=self.discord_panel.show,
-            width=639/20,
-            height=490/20 + 20,
-            image_size=(639/20, 490/20),
-            pos=POS.DISCORD_BUTTON,
+        self.discord_frame = DiscordFrame(
+            app=self,
+            #Height do frame deve sr igual a do botao
+            size=SIZE.DISCORD_FRAME,
+            pos=Pos(POS.LAUNCH_BUTTON.x-(SIZE.LAUNCH_BUTTON.w/2)-(61.9+200)/2,510),
+            color=COLOR.DARK_GRAY,
         )
-        self.discord_button.show()
+        print(f"pathzao {Path().resolve()}")
+        #self.discord_frame.place(x=500, y=510)
+
 
         self.save_button = CustomButton(
             master=self,
