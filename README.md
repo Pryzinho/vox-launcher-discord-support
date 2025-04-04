@@ -31,7 +31,6 @@
 <br><br><br><br><br>
 
 A windows only launcher that simplify the creation and usage of dedicated servers.
-
 <br>
 
 ### Included features:
@@ -41,6 +40,14 @@ A windows only launcher that simplify the creation and usage of dedicated server
 - Supports mods and any number of shards.
 
 <br>
+
+- Discord integration area
+- ...... tutorial
+- ......how it work
+- .....
+
+<br>
+
 
 ## How it works?
 

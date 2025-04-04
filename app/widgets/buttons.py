@@ -8,19 +8,26 @@ from app.helpers import resource_path
 
 
 class ImageButton(CTkButton):
-    def __init__(self, image, image_size, pos, **kwargs):
+    def __init__(self, image, image_size, pos, hide_bg=False, **kwargs):
         self.x = pos.x
         self.y = pos.y
-
+        print(pos.x, pos.y, 'isso é do imagebutton', hide_bg)
         image = CTkImage(Image.open(resource_path(image)), size=image_size)
 
+        fg_color = COLOR.GRAY
+        hover_color = COLOR.GRAY_HOVER
+
+        # Se hide_bg for True, remove o fundo
+        if hide_bg:
+            fg_color = "transparent"
+            hover_color = None
         super().__init__(
             image=image,
             text=None,
             corner_radius=10,
             border_spacing=0.01,
-            fg_color=COLOR.GRAY,
-            hover_color=COLOR.GRAY_HOVER,
+            fg_color=fg_color,
+            hover_color=hover_color,
             **kwargs
         )
 

@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 from pathlib import Path
 import winreg, ctypes
 from dataclasses import dataclass
@@ -10,6 +11,22 @@ import psutil, os, zipfile
 from constants import LOGGER
 
 logger = logging.getLogger(LOGGER)
+
+
+# ----------------------------------------------------------------------------------------- #
+
+class StdoutMock(TextIOWrapper):
+    def __init__(self) -> None:
+        self.stdout = sys.stdout
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        sys.stdout = self.stdout
+
+    def write(self, *args, **kwargs):
+        pass
 
 # ----------------------------------------------------------------------------------------- #
 

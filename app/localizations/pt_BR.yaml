@@ -1,0 +1,119 @@
+APP_NAME: Vox Launcher
+VERSION_LABEL: "{APP_NAME} {APP_VERSION}"
+WINDOW_TITLE: "  {APP_NAME} - Don't Starve Together - Iniciador de Servidor Dedicado"
+
+TOKEN_TOOLTIP: |-
+    Você precisa de um Token de Servidor para iniciar um Servidor Dedicado.
+    Obtenha um na página de contas da Klei.
+    Clique aqui para abrir o website.
+
+CLUSTER_NAME_DEFAULT: Como funciona?
+ASK_DIRECTORY_TITLE: "  Selecione um diretório"
+
+CLUSTER_GROUP_TOOLTIP: |-
+    ➊    Selecione a pasta de instalação em {GAME_TITLE}, caso ela não esteja automaticamente selecionada.
+    ➋    Crie um mundo usando o menu do jogo e selecione-o em {CLUSTER_TITLE}.
+    ➌    Cole um token de servidor em {TOKEN_TITLE}. Veja o ícone ⓘ para instruções de como obter um.
+    ➍    Finalmente, clique no botão {LAUNCH} e divirta-se!
+
+CLUSTER_GROUP_TOOLTIP_HIGHTLIGHT_PATTERNS:
+    - "{GAME_TITLE}"
+    - "{CLUSTER_TITLE}"
+    - "{TOKEN_TITLE}"
+    - ⓘ
+    - "{LAUNCH}"
+    - ➊
+    - ➋
+    - ➌
+    - ➍
+
+SHARD_NAME:
+    MASTER: Floresta   # Unused
+    EMPTY: Vazio
+
+LAUNCH_BUTTON:
+    LAUNCH: INICIAR
+    CANCEL: CANCELAR
+    SAVE_QUIT: SALVAR / PARAR
+    STOPPING: PARANDO
+
+SHARD_STATUS:
+    OFFLINE:    Desligado
+    STARTING:   Iniciando...
+    ONLINE:     Ligado
+    STOPPING:   Parando...
+    RESTARTING: Reiniciando...
+
+CLUSTER_STATS:
+    DAY: "Dia: "
+    SEASON: "Estação: "
+    PLAYERS: "Jogadores: "
+
+POPUP:
+    OK: Ok
+    CANCEL: Fechar
+    LOG: Registros
+    REPORT: Reportar
+    RETRY: Atualizar
+
+UPDATE_POPUP:
+    DOWNLOAD: Baixar
+    IGNORE: Ignorar
+    DESCRIPTION:
+        DEFAULT: Uma nova versão do aplicativo está disponível, por favor, considere baixa-lá.
+        DOWNLOADING: Baixando... isso não deve demorar muito!
+        FAILED: Infelizmente houve um erro... Talvez seja um problema com a sua conexão ou nos servidores do Github. Por favor, tente novamente mais tarde.
+
+LOG_SCREEN:
+    ENTRY_PLACEHOLDER: Execute comandos de console em {shard}. Pressione ENTER para executá-los.
+    CLOSE: Voltar
+    AUTO_SCROLL: Auto-rolagem
+    SHARD_FOLDER: Arquivos Locais
+    SHARD_NAME_TITLE: "Shard:"
+    SHARD_MEMORY_TITLE: "Memória:"
+    SHARD_MEMORY_FMT: "{mb} MB ({percent}%)"
+
+SMALL_BUTTON:
+    SAVE: Salvar
+    QUIT: Parar
+    RESET: Reiniciar
+    ROLLBACK: Reverter
+
+COMMAND_CONFIRMATION:
+    QUIT: Você realmente gostaria de parar o servidor sem salvar? Dados não salvos serão perdidos!
+    RESET: Você realmente gostaria de reiniciar o servidor sem salvar? Dados não salvos serão perdidos!
+    ROLLBACK: Quantos dias você gostaria de reverter?
+
+COMMAND_ANNOUNCEMENT:
+    SAVE: Salvando mundo...
+    QUIT: Parando...
+    RESET: Reiniciando...
+    ROLLBACK: Revertendo em 5 segundos!
+
+ENTRY:
+    GAME_TITLE: Diretório do Jogo
+    CLUSTER_TITLE: Diretório do Cluster
+    TOKEN_TITLE: Token de Servidor
+    ENTRY_INVALID_INPUT: "✱ Campo Inválido"
+
+ERROR:
+    TOKEN_INVALID: O token fornecido é inválido ou expirou.
+    GENERAL: Um erro ocorreu ao iniciar o servidor, por favor verifique os registros do servidor.
+    PORTS:  |-
+        As portas {ports} já estão sendo utilizadas por outro programa.
+
+        Isso geralmente acontece quando outro servidor está rodando nas mesmas portas - mesmo que tenha sido iniciado por dentro do jogo.
+
+        Caso não encontre nenhuma irregularidade, reporte o problema no repositório, pois isso pode ser sido causado pelo próprio app.
+    EXCEPTION: |-
+        Um erro ocorreu!
+
+        {error}
+
+        Seu servidor será salvado e fechado. Entretanto, a interface do aplicativo pode não representar isso corretamente.
+
+        Por favor, reporte o problema criando um "issue" no Github.
+    LAUNCH_DATA_INVALID: |-
+        Antes de usar o Vox Launcher pela primeira vez, por favor inicie este cluster pelo menu do jogo e feche-o.
+
+        Depois disso, clique no botão atualizar abaixo.

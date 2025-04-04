@@ -1,14 +1,8 @@
-import logging
-
-import sys, os
 import random
-import logging, logging.config
-
-from pathlib import Path
 from io import TextIOWrapper
-
-from pexpect import popen_spawn
 from signal import SIGTERM
+
+from pexpect import popen_spawn, EOF, TIMEOUT
 
 from constants import *
 from helpers import *
@@ -20,35 +14,25 @@ logger = logging.getLogger(LOGGER)
 
 PROCESS_ID = os.getpid()
 
+
 # ------------------------------------------------------------------------------------ #
-
-class StdoutMock(TextIOWrapper):
-    def __init__(self) -> None:
-        self.stdout = sys.stdout
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        sys.stdout = self.stdout
-
-    def write(self, *args, **kwargs):
-        pass
-
-
 class DedicatedServerShard():
     def __init__(self, app, shard_frame) -> None:
+        # seria onde ficaria o equivalente de childprocces do node
         self.process = None
+        # acho que é uma instancia da main
         self.app = app
-
+        # o frame é a tela em que ele aparece, de acordo com a bilbioteca de gui usada pelo diogo
         self.shard_frame = shard_frame
         self.shard = shard_frame.code
 
+    # na doc o poll() retorna None se ainda tiver rodando, o proccess é auto explicativo
     def is_running(self):
         return self.process and self.process.proc.poll() is None or False
 
+    # provavel que nseja removido, o bot nao precisa de argumentos
     def get_arguments(self, launch_data):
-        game_directory    = Path(self.app.game_entry.get()   )
+        game_directory = Path(self.app.game_entry.get())
         cluster_directory = Path(self.app.cluster_entry.get())
 
         token = self.app.token_entry.get()
@@ -96,7 +80,7 @@ class DedicatedServerShard():
             logger.warning(f"Shard {self.shard} is already running...")
             return
 
-        game_directory_valid    = self.app.game_entry.validate_text()
+        game_directory_valid = self.app.game_entry.validate_text()
         cluster_directory_valid = self.app.cluster_entry.validate_text()
 
         if game_directory_valid and cluster_directory_valid:
@@ -119,14 +103,18 @@ class DedicatedServerShard():
 
             args, cwd = self.get_arguments(launch_data)
 
-            #logger.debug("Starting server with these arguments: %s", " ".join(args))
+            # logger.debug("Starting server with these arguments: %s", " ".join(args))
 
             # This is HORRIBLE, but it works (Pyinstaller --noconcole + subprocess issue)
+            # é oq tem pra hoje, simula um console bem dizer
             with StdoutMock() as sys.stdout:
+                # spawna oq seria o child process do node
                 self.process = popen_spawn.PopenSpawn(args, cwd=cwd, encoding="utf-8", codec_errors="ignore")
-
+            # a cada ~60ms isso roda a função "handle_output" é semelhar a um runanble/thread do java
             self.task = PeriodicTask(self.app, random.randrange(50, 70), self.handle_output, initial_time=0)
 
+    #no bot isso vai precisar na real pegar a variavel que representa a instancia do
+    # shard ou de todos shards, pra rodar o DedicatedServerShard.execute_command()
     def execute_command(self, command, log=True):
         if not self.is_running():
             return
@@ -138,7 +126,8 @@ class DedicatedServerShard():
             self.process.sendline(command)
 
         except OSError as e:
-            logger.error(f"OSError during DedicatedServerShard [{self.shard}] execute_command function! Command: '{command}'. Actual error: '{e}'")
+            logger.error(
+                f"OSError during DedicatedServerShard [{self.shard}] execute_command function! Command: '{command}'. Actual error: '{e}'")
 
     def on_stopped(self):
         logger.info(f"{self.shard} shard is down...")
@@ -167,7 +156,9 @@ class DedicatedServerShard():
             self.execute_command(f"c_shutdown()")
 
             logger.info(f"Stopping {self.shard} shard...")
-
+    #po vei isso le o output do meu bot que eu so quero que apareça la no frame do console
+    # so tenho que saber se é esse metodo que atualiza o console la, se for deixo
+    # se nao eu apago isso
     def handle_output(self):
         """
         Reads all new data from shard.process and handle key phases.
@@ -195,6 +186,7 @@ class DedicatedServerShard():
         if not text:
             return True, None
 
+        # é, nao posso apagar nao esse metodo
         self.shard_frame.add_text_to_log_screen(text)
 
         self.handle_output_keywords(text=text)
@@ -206,7 +198,8 @@ class DedicatedServerShard():
                 self.app.cluster_stats.update(vox_data)
 
         return True, None
-
+# é basicamente um ExceptionHandler de acordo com oq apareçe la no console
+    # eu posso deixar pra futuramente fazer algo assim, mas fica comentado na versao do bot
     def handle_output_keywords(self, text):
         if "E_INVALID_TOKEN" in text or "E_EXPIRED_TOKEN" in text:
             logger.error("Invalid Token: E_INVALID_TOKEN or E_EXPIRED_TOKEN")
@@ -234,8 +227,8 @@ class DedicatedServerShard():
             self.app.stop_shards()
 
             cluster_directory = Path(self.app.cluster_entry.get())
-            config_file =  cluster_directory 
-            
+            config_file = cluster_directory
+
             ports = []
 
             for shard in get_shard_names(cluster_directory):

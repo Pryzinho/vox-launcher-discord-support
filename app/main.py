@@ -193,9 +193,21 @@ class App(CTk):
         """
             Bottom section:
             - Launch button
+            - Discord button
             - Console command buttons
             - Version label
         """
+
+        self.discord_button = ImageButton(
+            master=self,
+            command=self.callback_launch,
+            image='./assets/discord-mark-blue.png',
+            image_size=(61.9, 47),
+            pos=Pos(560,510),
+            hover=False,
+            hide_bg=True
+        )
+        self.discord_button.show()
 
         launch_buton_text = StringVar(value=STRINGS.LAUNCH_BUTTON.LAUNCH)
 

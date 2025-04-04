@@ -7,7 +7,8 @@ from PIL import Image
 from strings import STRINGS
 from constants import COLOR, SERVER_STATUS, OFFSET, SIZE, FRAME_GAP, FONT_SIZE, Pos, Size
 from widgets.buttons import ImageButton, RelativeXImageButton, CustomButton
-from helpers import load_lua_file, read_only_bind, disable_bind, resource_path, get_memory_usage, open_folder, TextHightlightData, PeriodicTask
+from helpers import load_lua_file, read_only_bind, disable_bind, resource_path, get_memory_usage, open_folder, \
+    TextHightlightData, PeriodicTask
 from shard_server import DedicatedServerShard
 from fonts import FONT
 
@@ -43,18 +44,19 @@ class LogsTopBar:
         )
 
         self.open_folder_button.grid(
-            row = 0,
-            column = 5,
+            row=0,
+            column=5,
             columnspan=3,
             padx=(65, 0),
             sticky="nw",
         )
 
-        self.shard_name   = self.create_label(text=self.shard, title=STRINGS.LOG_SCREEN.SHARD_NAME_TITLE, column=0)
-        self.memory_label = self.create_label(textvariable=self.memory, title=STRINGS.LOG_SCREEN.SHARD_MEMORY_TITLE, column=3)
+        self.shard_name = self.create_label(text=self.shard, title=STRINGS.LOG_SCREEN.SHARD_NAME_TITLE, column=0)
+        self.memory_label = self.create_label(textvariable=self.memory, title=STRINGS.LOG_SCREEN.SHARD_MEMORY_TITLE,
+                                              column=3)
 
     def create_label(self, title, column, textvariable=None, text=None):
-        title_label =  CTkLabel(
+        title_label = CTkLabel(
             master=self._frame,
             height=0,
             anchor="center",
@@ -63,7 +65,7 @@ class LogsTopBar:
             font=FONT.CLUSTER_STATS,
         )
 
-        value_label =  CTkLabel(
+        value_label = CTkLabel(
             master=self._frame,
             height=0,
             anchor="center",
@@ -74,16 +76,16 @@ class LogsTopBar:
         )
 
         title_label.grid(
-            row = 0,
-            column = column,
+            row=0,
+            column=column,
             padx=(column == 0 and FRAME_GAP * 1.5 or 65, 10),
             ipady=FONT_SIZE.CLUSTER_STATS / 3,
             sticky="n",
         )
 
         value_label.grid(
-            row = 0,
-            column = column + 1,
+            row=0,
+            column=column + 1,
             ipady=FONT_SIZE.CLUSTER_STATS / 3,
             sticky="n",
         )
@@ -99,10 +101,11 @@ class LogsTopBar:
 
         memory_mb = memory / 1000 / 1000
 
-        self.memory.set(STRINGS.LOG_SCREEN.SHARD_MEMORY_FMT.format(mb=round(memory_mb, 2), percent=round(memory_percent)))
+        self.memory.set(
+            STRINGS.LOG_SCREEN.SHARD_MEMORY_FMT.format(mb=round(memory_mb, 2), percent=round(memory_percent)))
 
         return True, None
-    
+
     def _open_shard_folder(self):
         open_folder(Path(self.server.app.cluster_entry.get()) / self.shard)
 
@@ -142,42 +145,42 @@ class ShardLogPanel():
             master=master,
             color=COLOR.GRAY,
             size=SIZE.LOGS_PANEL,
-            #pos=OFFSET.LOGS_PANEL,
+            # pos=OFFSET.LOGS_PANEL,
             corner_radius=self.corner_radius,
         )
 
         self.topbar = LogsTopBar(master=self.root, server=self.server, shard=self.shard)
 
         self.textbox = CTkTextbox(
-            master = self.root,
-            width = SIZE.LOGS_TEXTBOX.w,
-            height = SIZE.LOGS_TEXTBOX.h,
-            corner_radius = self.corner_radius,
-            fg_color = COLOR.DARK_GRAY,
-            text_color = COLOR.WHITE,
-            scrollbar_button_color = COLOR.GRAY,
-            scrollbar_button_hover_color = COLOR.GRAY_HOVER,
-            font = FONT.TEXTBOX,
+            master=self.root,
+            width=SIZE.LOGS_TEXTBOX.w,
+            height=SIZE.LOGS_TEXTBOX.h,
+            corner_radius=self.corner_radius,
+            fg_color=COLOR.DARK_GRAY,
+            text_color=COLOR.WHITE,
+            scrollbar_button_color=COLOR.GRAY,
+            scrollbar_button_hover_color=COLOR.GRAY_HOVER,
+            font=FONT.TEXTBOX,
         )
 
-        #self.textbox.bind("<MouseWheel>", self._mouse_scroll_event)
+        # self.textbox.bind("<MouseWheel>", self._mouse_scroll_event)
 
         self.textbox._textbox.configure(selectbackground=COLOR.GRAY)
 
         self.add_hightlight(pattern=r'\[\d{2}:\d{2}:\d{2}\]:', name="timestamp", color=COLOR.CONSOLE_GRAY)
         self.add_hightlight(pattern=r'World \d* is now connected', name="online", color=COLOR.GREEN)
         self.add_hightlight(pattern=r'RemoteCommandInput:.*?[\n\r]+', name="remotecommand", color=COLOR.LIGHT_BLUE)
-        #self.add_hightlight(pattern=r'\[Warning\].*?[\n\r]+', name="warnings", color=COLOR.YELLOW) # FIXME: bugged
+        # self.add_hightlight(pattern=r'\[Warning\].*?[\n\r]+', name="warnings", color=COLOR.YELLOW) # FIXME: bugged
 
         self.textbox.place(
-            x = OFFSET.LOGS_TEXTBOX.x,
-            y = OFFSET.LOGS_TEXTBOX.y,
+            x=OFFSET.LOGS_TEXTBOX.x,
+            y=OFFSET.LOGS_TEXTBOX.y,
         )
 
         self.textbox.bind("<Key>", read_only_bind)
 
         self.entry = CTkEntry(
-            master = self.root,
+            master=self.root,
             corner_radius=self.corner_radius,
             border_color=COLOR.DARK_GRAY,
             text_color=COLOR.WHITE,
@@ -186,14 +189,14 @@ class ShardLogPanel():
             border_width=0,
             width=SIZE.LOGS_ENTRY.w,
             height=SIZE.LOGS_ENTRY.h,
-            placeholder_text=STRINGS.LOG_SCREEN.ENTRY_PLACEHOLDER.format(shard = self.shard),
+            placeholder_text=STRINGS.LOG_SCREEN.ENTRY_PLACEHOLDER.format(shard=self.shard),
         )
 
         self.entry._entry.configure(selectbackground=COLOR.GRAY)
 
         self.entry.place(
-            x = OFFSET.LOGS_ENTRY.x,
-            y = OFFSET.LOGS_ENTRY.y,
+            x=OFFSET.LOGS_ENTRY.x,
+            y=OFFSET.LOGS_ENTRY.y,
         )
 
         self.entry.bind("<Return>", self.execute_command)
@@ -214,8 +217,8 @@ class ShardLogPanel():
         )
 
         self.button.place(
-            x = OFFSET.LOGS_CLOSE.x,
-            y = OFFSET.LOGS_CLOSE.y,
+            x=OFFSET.LOGS_CLOSE.x,
+            y=OFFSET.LOGS_CLOSE.y,
         )
 
         # self.show_end_button = ImageButton(
@@ -247,11 +250,11 @@ class ShardLogPanel():
         )
 
         self.auto_scroll_switch.place(
-            x = OFFSET.LOGS_AUTO_SCROLL_SWITCH.x - self.switch_xpad,
-            y = OFFSET.LOGS_AUTO_SCROLL_SWITCH.y,
+            x=OFFSET.LOGS_AUTO_SCROLL_SWITCH.x - self.switch_xpad,
+            y=OFFSET.LOGS_AUTO_SCROLL_SWITCH.y,
         )
 
-        self.auto_scroll_switch._canvas.grid(    row=0, column=0, sticky="",  padx=(self.switch_xpad, 10))
+        self.auto_scroll_switch._canvas.grid(row=0, column=0, sticky="", padx=(self.switch_xpad, 10))
         self.auto_scroll_switch._text_label.grid(row=0, column=2, sticky="w", padx=(0, self.switch_xpad))
 
         self.hide()
@@ -305,8 +308,8 @@ class ShardLogPanel():
 
         self.hightlight_data.append(
             TextHightlightData(
-                pattern = re.compile(pattern),
-                name = name,
+                pattern=re.compile(pattern),
+                name=name,
             )
         )
 
@@ -322,6 +325,7 @@ class ShardLogPanel():
 
     def _mouse_scroll_event(self, *args, **kwargs):
         pass
+
     #     if self.textbox.yview()[1] > 0.995:
     #         self.show_end_button.hide()
     #     else:
@@ -335,7 +339,7 @@ class ShardLogPanel():
 
         else:
             pass
-            #self._mouse_scroll_event()
+            # self._mouse_scroll_event()
 
 
 class DiscordTopBar:
@@ -630,7 +634,7 @@ class CustomFrame(CTkFrame):
         super().__init__(
             border_color=border_color or color,
             fg_color=color,
-            bg_color = bg_color,
+            bg_color=bg_color,
             corner_radius=corner_radius,
             width=size.w,
             height=size.h,
@@ -645,7 +649,7 @@ class CustomFrame(CTkFrame):
 
 
 class PlaceHolderShardFrame(CustomFrame):
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         super().__init__(
             color=COLOR.DARK_GRAY,
             size=SIZE.FRAME,
@@ -662,8 +666,8 @@ class PlaceHolderShardFrame(CustomFrame):
         )
 
         self.text.place(
-            relx = 0.5,
-            rely = 0.5,
+            relx=0.5,
+            rely=0.5,
             anchor=CENTER,
         )
 
@@ -696,8 +700,8 @@ class ShardFrame(CustomFrame):
         )
 
         self.type.place(
-            relx= 0.05,
-            y= OFFSET.SHARD_TYPE.y,
+            relx=0.05,
+            y=OFFSET.SHARD_TYPE.y,
         )
 
         self.server = DedicatedServerShard(self._master, self)
@@ -717,9 +721,9 @@ class ShardFrame(CustomFrame):
         self.status_circle = ColouredCircle(
             master=self,
             color=COLOR.WHITE,
-            relx = 0.80,
-            y = OFFSET.SHARD_STATUS_CIRCLE.y,
-            size = SIZE.SHARD_STATUS_CIRCLE.w,
+            relx=0.80,
+            y=OFFSET.SHARD_STATUS_CIRCLE.y,
+            size=SIZE.SHARD_STATUS_CIRCLE.w,
         )
 
         self.status_msg_label = CTkLabel(
@@ -733,8 +737,8 @@ class ShardFrame(CustomFrame):
         )
 
         self.status_msg_label.place(
-            relx = 0.84,
-            y = OFFSET.SHARD_STATUS_MSG.y,
+            relx=0.84,
+            y=OFFSET.SHARD_STATUS_MSG.y,
         )
 
         self.set_offline()
@@ -786,7 +790,6 @@ class ShardFrame(CustomFrame):
             self._master.quit_button.hide()
             self._master.reset_button.hide()
             self._master.rollback_button.hide()
-
 
     def set_starting(self):
         self.status = SERVER_STATUS.STARTING
@@ -864,14 +867,14 @@ class ShardFrame(CustomFrame):
 class TextBoxAsLabel(CTkTextbox):
     def __init__(self, master):
         super().__init__(
-            master = master,
-            width = SIZE.SHARD_GROUP.w - 10,
-            height = SIZE.SHARD_GROUP.h + 5,
-            corner_radius = 15,
-            fg_color = COLOR.GRAY,
-            text_color = COLOR.WHITE,
+            master=master,
+            width=SIZE.SHARD_GROUP.w - 10,
+            height=SIZE.SHARD_GROUP.h + 5,
+            corner_radius=15,
+            fg_color=COLOR.GRAY,
+            text_color=COLOR.WHITE,
             activate_scrollbars=False,
-            font = FONT.SHARD_TOOLTIP,
+            font=FONT.SHARD_TOOLTIP,
             border_spacing=30,
         )
 
@@ -892,12 +895,11 @@ class TextBoxAsLabel(CTkTextbox):
 
         self.bind("<MouseWheel>", disable_bind)
 
-
     def add_hightlight(self, pattern):
         self.hightlight_data.append(
             TextHightlightData(
-                pattern = re.compile(pattern),
-                name = "hightlight",
+                pattern=re.compile(pattern),
+                name="hightlight",
             )
         )
 
@@ -926,7 +928,7 @@ class ScrollableShardGroupFrame(CTkScrollableFrame):
             master=master,
             border_color=border_color or color,
             fg_color=color,
-            bg_color = bg_color,
+            bg_color=bg_color,
             corner_radius=corner_radius,
             width=self._width,
             height=self._height,
@@ -937,8 +939,8 @@ class ScrollableShardGroupFrame(CTkScrollableFrame):
         )
 
         self._scrollbar.configure(
-            width  = FRAME_GAP * 1.75,
-            height = size.h * 0.25,
+            width=FRAME_GAP * 1.75,
+            height=size.h * 0.25,
         )
 
         self.place(
@@ -952,7 +954,7 @@ class ScrollableShardGroupFrame(CTkScrollableFrame):
         is_master = code == "Master"
 
         self.shards[code] = ShardFrame(
-            app = self.app,
+            app=self.app,
             master=self,
             code=code,
             color=COLOR.DARK_GRAY,
@@ -1011,6 +1013,9 @@ class ScrollableShardGroupFrame(CTkScrollableFrame):
         for frame in self.get_shards():
             frame.set_restarting()
 
+    def get_shard(self, shard_code) -> ShardFrame:
+        return self.shards.get(shard_code, None)
+
     def get_shards(self, include_placeholders=False):
         if include_placeholders:
             return self.shards.values()
@@ -1049,7 +1054,8 @@ class ScrollableShardGroupFrame(CTkScrollableFrame):
         self.configure(width=self._width - FRAME_GAP / 2 - FRAME_GAP * 0.8)
 
         self._parent_canvas.grid(row=1, column=0, sticky="nsew", padx=(pad, 0), pady=pad)
-        self._scrollbar.grid(row=1, column=1, sticky="nsew", pady = self._apply_widget_scaling(FRAME_GAP), padx= self._apply_widget_scaling(FRAME_GAP / 6))
+        self._scrollbar.grid(row=1, column=1, sticky="nsew", pady=self._apply_widget_scaling(FRAME_GAP),
+                             padx=self._apply_widget_scaling(FRAME_GAP / 6))
 
 
 class ColouredCircle(CTkFrame):
@@ -1062,10 +1068,10 @@ class ColouredCircle(CTkFrame):
             width=size,
             **kwargs)
 
-        self.place(relx=relx, y=y - size/2)
+        self.place(relx=relx, y=y - size / 2)
 
     def set_color(self, color):
         self.configure(
-            fg_color = color,
-            border_color = color,
+            fg_color=color,
+            border_color=color,
         )
